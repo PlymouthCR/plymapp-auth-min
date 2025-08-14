@@ -1,100 +1,158 @@
-/* ========= TU CONFIG ========= */
-const SB_URL  = "https://ltkxdikyamllfcpugrcc.supabase.co";   // <-- cambia
-const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0a3hkaWt5YW1sbGZjcHVncmNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxNzc0ODAsImV4cCI6MjA3MDc1MzQ4MH0.dTSVaj9ae_PppaTPxcvJbX_Q7PyqnolJ2VH-0mtGdhY";               // <-- cambia
+/* =========================================================================
+   Plymouth Practice – app.js (versión mínima y robusta)
+   - Login / SignUp / Logout con Supabase
+   - Pinta la UI fiable al cambiar el estado de auth
+   - Evita loops de caché y estados zombis
+   =======================================================================*/
 
-window.supabase = supabase.createClient(SB_URL, SB_ANON, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+/* -------------------- Helpers -------------------- */
+const $ = (sel, root = document) => root.querySelector(sel);
+const on = (el, ev, fn) => el && el.addEventListener(ev, fn);
+
+// Panel de logs (opcional)
+function log(msg) {
+  console.log(msg);
+  const box = $("#debug-log");
+  if (!box) return;
+  const p = document.createElement("div");
+  p.textContent = msg;
+  box.appendChild(p);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* -------------------- Obtener credenciales -------------------- */
+const SB_URL =
+  window.SUPABASE_URL ||
+  window.__SUPABASE_URL__ ||
+  document.querySelector('meta[name="supabase-url"]')?.content;
+
+const SB_KEY =
+  window.SUPABASE_ANON_KEY ||
+  window.__SUPABASE_ANON_KEY__ ||
+  document.querySelector('meta[name="supabase-key"]')?.content;
+
+if (!SB_URL || !SB_KEY) {
+  log("❌ No encuentro las credenciales de Supabase. Revisa URL y anon key.");
+  // Evita que siga y dé errores en consola:
+  throw new Error("Missing Supabase credentials");
+}
+
+/* -------------------- Supabase client -------------------- */
+const supabase = window.supabase.createClient(SB_URL, SB_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
 });
 
-const $ = s => document.querySelector(s);
-function log(m){ const d=$("#debug-log"); if(d){ d.append(m+"\n"); d.scrollTop=d.scrollHeight; } console.log("[AUTH]", m); }
-
+/* -------------------- UI -------------------- */
 async function paintUI() {
   const { data, error } = await supabase.auth.getSession();
   if (error) {
     log("getSession error: " + error.message);
     return;
   }
+  const logged = !!data?.session;
 
-  const logged = !!data?.session; // true si hay sesión, false si no
-
+  // Mostrar/ocultar contenedores
   $("#anon")?.classList.toggle("hidden", logged);   // ocultar login si hay sesión
   $("#authed")?.classList.toggle("hidden", !logged); // mostrar welcome si hay sesión
-  $("#who").textContent = logged ? (data.session.user?.email || "") : "";
 
-  log("paintUI -> logged: " + logged);
+  // Mostrar email del usuario (si existe)
+  $("#who") && ($("#who").textContent = logged ? (data.session.user?.email || "") : "");
+
+  log(`[AUTH] paintUI -> logged: ${logged}`);
 }
-let hooked = false;
-function hookAuth(){
-  if (hooked) return;
-  supabase.auth.onAuthStateChange(async (ev, session) => {
-    log(`auth change: ${ev} | session: ${!!session}`);
+
+// Escuchar los cambios de auth y repintar
+(function hookAuth() {
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    log(`[AUTH] change: ${event} | session: ${!!session}`);
     await paintUI();
   });
-  hooked = true;
+})();
+
+/* -------------------- Acciones -------------------- */
+async function doSignup() {
+  const btn = $("#btn-signup");
+  const email = $("#email")?.value.trim();
+  const pass  = $("#pass")?.value.trim();
+
+  if (!email || !pass) return alert("Enter email & password.");
+
+  btn && (btn.disabled = true);
+  try {
+    const { error } = await supabase.auth.signUp({ email, password: pass });
+    if (error) return alert("Sign up error: " + error.message);
+
+    alert("Sign up ok. Si tienes 'Confirm email' activo, revisa tu correo.");
+  } catch (e) {
+    alert("Sign up error: " + (e?.message || e));
+  } finally {
+    btn && (btn.disabled = false);
+  }
 }
 
-/* ---------- Sign up ---------- */
-$("#btn-signup")?.addEventListener("click", async () => {
-  const email = $("#email").value.trim();
-  const pass  = $("#pass").value.trim();
-  if(!email || !pass) return alert("Enter email & password.");
-  $("#btn-signup").disabled = true;
-  try{
-    const { error } = await supabase.auth.signUp({ email, password: pass });
-    if (error) return alert(error.message);
-    alert("Check your email to confirm (if confirmation is enabled).");
-  }catch(e){ alert("Sign up error: "+(e?.message||e)); }
-  finally{ $("#btn-signup").disabled = false; }
-});
+async function doLogin() {
+  const btn = $("#btn-login");
+  const email = $("#email")?.value.trim();
+  const pass  = $("#pass")?.value.trim();
 
-/* ---------- Login ---------- */
-$("#btn-login")?.addEventListener("click", async () => {
-  const email = $("#email").value.trim();
-  const pass  = $("#pass").value.trim();
-  if(!email || !pass) return alert("Enter email & password.");
-  $("#btn-login").disabled = true;
-  try{
-    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-    if (error) return alert(error.message);
+  if (!email || !pass) return alert("Enter email & password.");
+
+  btn && (btn.disabled = true);
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email, password: pass,
+    });
+    if (error) return alert("Login error: " + error.message);
+
     log("login ok");
+    // Limpia campos y repinta
+    $("#email") && ($("#email").value = "");
+    $("#pass")  && ($("#pass").value  = "");
     await paintUI();
-  }catch(e){ alert("Login error: "+(e?.message||e)); }
-  finally{ $("#btn-login").disabled = false; }
-});
+  } catch (e) {
+    alert("Login error: " + (e?.message || e));
+  } finally {
+    btn && (btn.disabled = false);
+  }
+}
 
-/* ---------- Logout (forzado) ---------- */
-$("#btn-logout")?.addEventListener("click", async () => {
-  $("#btn-logout").disabled = true;
-  try{
+async function doLogout() {
+  const btn = $("#btn-logout");
+  btn && (btn.disabled = true);
+  try {
     await supabase.auth.signOut();
-
-    // Limpieza defensiva
     try { localStorage.clear(); sessionStorage.clear(); } catch {}
 
-    // FORZAR la UI inmediatamente (sin esperar eventos)
-    $("#anon")?.classList.remove("hidden");
+    // Forzar UI inmediata (evita quedarse en "Welcome")
     $("#authed")?.classList.add("hidden");
-    $("#who").textContent = "";
+    $("#anon")?.classList.remove("hidden");
+    $("#who") && ($("#who").textContent = "");
 
-    // Cinturón y tirantes: recarga con cache-buster para evitar vistas cacheadas
-    setTimeout(() => {
-      const u = new URL(window.location.href);
-      u.searchParams.set("_", Date.now()); // rompe caché
-      window.location.replace(u.toString());
-    }, 50);
-
-  }catch(e){
-    alert("Logout error: "+(e?.message||e));
-  }finally{
-    $("#btn-logout").disabled = false;
+    // Romper caché para que nunca veas la vista antigua
+    const u = new URL(location.href);
+    u.searchParams.set('_', Date.now().toString());
+    location.replace(u.toString());
+  } catch (e) {
+    alert("Logout error: " + (e?.message || e));
+  } finally {
+    btn && (btn.disabled = false);
   }
-});
+}
 
-/* ---------- Arranque ---------- */
-(async function start(){
-  hookAuth();
+/* -------------------- Event listeners -------------------- */
+on($("#btn-signup"), "click", (e) => { e.preventDefault(); doSignup(); });
+on($("#btn-login"),  "click", (e) => { e.preventDefault(); doLogin();  });
+on($("#btn-logout"), "click", (e) => { e.preventDefault(); doLogout(); });
+
+/* -------------------- Init -------------------- */
+(async () => {
+  // Pinta la UI con el estado actual
   await paintUI();
-  const { data, error } = await supabase.auth.getSession();
-  log("init: "+(data?.session ? "LOGGED IN" : "NO SESSION")+(error? " | "+error.message:""));
+
+  // Log de arranque
+  const { data } = await supabase.auth.getSession();
+  log(`[AUTH] init -> logged: ${!!data?.session}`);
 })();
