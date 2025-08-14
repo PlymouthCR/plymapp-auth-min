@@ -1,7 +1,7 @@
 /* ========= Pega aquí tus llaves de Supabase ========= */
 /* Supabase → Settings → API */
-const SB_URL  = "https://TU-PROJECT.supabase.co";   // <— cámbialo
-const SB_ANON = "TU_ANON_PUBLIC_KEY";               // <— cámbialo
+const SB_URL  = "https://ltkxdikyamllfcpugrcc.supabase.co";   // <— cámbialo
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0a3hkaWt5YW1sbGZjcHVncmNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxNzc0ODAsImV4cCI6MjA3MDc1MzQ4MH0.dTSVaj9ae_PppaTPxcvJbX_Q7PyqnolJ2VH-0mtGdhY";               // <— cámbialo
 
 /* Cliente Supabase con sesión persistente */
 window.supabase = supabase.createClient(SB_URL, SB_ANON, {
