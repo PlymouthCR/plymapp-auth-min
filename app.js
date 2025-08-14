@@ -62,13 +62,21 @@ $("#btn-login")?.addEventListener("click", async () => {
 });
 
 $("#btn-logout")?.addEventListener("click", async () => {
-  $("#btn-logout").disabled = true;
-  try{
-    await supabase.auth.signOut();
-    try{ localStorage.clear(); sessionStorage.clear(); }catch{}
-    await paintUI();
-  }catch(e){ alert("Logout error: "+(e?.message||e)); }
-  finally{ $("#btn-logout").disabled = false; }
+    $("#btn-logout").disabled = true;
+    try {
+        await supabase.auth.signOut();
+        try { 
+            localStorage.clear(); 
+            sessionStorage.clear(); 
+        } catch {}
+        
+        // Redirigir a login
+        window.location.href = "/"; // o "/login" si tienes esa ruta
+    } catch(e) { 
+        alert("Logout error: " + (e?.message || e)); 
+    } finally { 
+        $("#btn-logout").disabled = false; 
+    }
 });
 
 /* Arranque mínimo */
