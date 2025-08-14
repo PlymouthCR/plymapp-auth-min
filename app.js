@@ -13,13 +13,22 @@ const $ = s => document.querySelector(s);
 function log(m){ console.log("[AUTH]", m); const d=$("#debug-log"); if(d){ d.append(m+"\n"); d.scrollTop=d.scrollHeight; }}
 
 /* Pintar UI según sesión */
-async function paintUI(){
-  const { data, error } = await supabase.auth.getUser();
-  if(error) log("getUser error: "+error.message);
-  const user = data?.user ?? null;
-  $("#who").textContent = user ? (user.email||"Logged in") : "";
-  $("#anon").classList.toggle("hidden", !!user);
-  $("#authed").classList.toggle("hidden", !user);
+async function paintUI() {
+  // getSession NO lanza error cuando no hay sesión
+  const { data, error } = await supabase.auth.getSession();
+  if (error) log("getSession error: " + error.message);
+
+  const session = data?.session || null;
+  const logged = !!session;
+
+  // Muestra/Oculta tarjetas
+  $("#anon").classList.toggle("hidden", logged);
+  $("#authed").classList.toggle("hidden", !logged);
+
+  // Email en la esquina
+  $("#who").textContent = logged ? (session.user?.email || "") : "";
+
+  log("paintUI -> logged: " + logged);
 }
 
 /* Escuchar cambios de auth (login/logout/confirmación) */
@@ -62,23 +71,19 @@ $("#btn-login")?.addEventListener("click", async () => {
 });
 
 $("#btn-logout")?.addEventListener("click", async () => {
-    $("#btn-logout").disabled = true;
-    try {
-        await supabase.auth.signOut();
-        try { 
-            localStorage.clear(); 
-            sessionStorage.clear(); 
-        } catch {}
-        
-        // Redirigir a login
-        window.location.href = "/"; // o "/login" si tienes esa ruta
-    } catch(e) { 
-        alert("Logout error: " + (e?.message || e)); 
-    } finally { 
-        $("#btn-logout").disabled = false; 
-    }
+  $("#btn-logout").disabled = true;
+  try {
+    await supabase.auth.signOut();
+    try { localStorage.clear(); sessionStorage.clear(); } catch {}
+    await paintUI();                      // <-- repinta a estado "login"
+    // Si aún ves "Welcome" por cache, descomenta la línea de abajo:
+    // window.location.reload();
+  } catch (e) {
+    alert("Logout error: " + (e?.message || e));
+  } finally {
+    $("#btn-logout").disabled = false;
+  }
 });
-
 /* Arranque mínimo */
 (async function start(){
   hookAuth();
