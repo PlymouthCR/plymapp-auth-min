@@ -1,51 +1,62 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta name="supabase-url" content="https://ltkxdikyamllfcpugrcc.supabase.co">
-<meta name="supabase-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0a3hkaWt5YW1sbGZjcHVncmNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxNzc0ODAsImV4cCI6MjA3MDc1MzQ4MH0.dTSVaj9ae_PppaTPxcvJbX_Q7PyqnolJ2VH-0mtGdhY">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plymouth Practice — Auth Minimal</title>
+
+  <!-- Evitar cache agresiva mientras pruebas -->
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- PON AQUÍ TUS CREDENCIALES -->
+  <meta name="supabase-url" content="https://TU-PROJECT.supabase.co">
+  <meta name="supabase-key" content="TU-ANON-KEY">
+
+  <title>Plymouth Practice</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Supabase JS (CDN oficial) -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">Plymouth Practice</div>
-    <div id="who" class="who"></div>
+    <strong>Plymouth Practice</strong>
+    <span id="who"></span>
   </header>
 
-  <main class="container">
-    <!-- NO autenticado -->
-    <section id="anon" class="card">
-      <h2>Sign in</h2>
-      <div class="row">
-        <label>Email</label>
-        <input id="email" type="email" class="input" placeholder="you@example.com" />
-      </div>
-      <div class="row">
-        <label>Password</label>
-        <input id="pass" type="password" class="input" placeholder="••••••••" />
-      </div>
-      <div class="actions">
-        <button id="btn-signup" class="btn">Sign up</button>
-        <button id="btn-login"  class="btn primary">Login</button>
-      </div>
-      <p class="hint">Tip: para pruebas puedes desactivar “Confirm email” en Supabase.</p>
-    </section>
+  <!-- Login / Sign up -->
+  <section id="anon" class="card">
+    <h2>Sign in</h2>
 
-    <!-- Autenticado -->
-    <section id="authed" class="card hidden">
-      <h2>Welcome 👋</h2>
-      <p>Sesión activa. Aquí luego agregaremos el resto de la app.</p>
-      <button id="btn-logout" class="btn danger">Logout</button>
-    </section>
-  </main>
+    <div class="row">
+      <label>Email</label>
+      <input id="email" type="email" placeholder="you@example.com" />
+    </div>
 
-  <!-- Panel debug (temporal) -->
-  <div id="debug-log" class="debug">Debug log…</div>
+    <div class="row">
+      <label>Password</label>
+      <input id="pass" type="password" placeholder="••••••••" />
+    </div>
 
+    <div class="actions">
+      <button id="btn-signup" type="button">Sign up</button>
+      <button id="btn-login"  type="button" class="primary">Login</button>
+    </div>
+
+    <p class="hint">Tip: para pruebas puedes desactivar “Confirm email” en Supabase.</p>
+  </section>
+
+  <!-- Bienvenida -->
+  <section id="authed" class="card hidden">
+    <h2>Welcome 👋</h2>
+    <p>Sesión activa. Aquí luego agregaremos el resto de la app.</p>
+    <button id="btn-logout" type="button" class="danger">Logout</button>
+  </section>
+
+  <!-- Debug (opcional) -->
+  <div id="debug-log" class="debug"></div>
+
+  <!-- Supabase (CDN v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Tu app -->
   <script src="app.js"></script>
 </body>
 </html>
