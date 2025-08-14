@@ -9,17 +9,21 @@ window.supabase = supabase.createClient(SB_URL, SB_ANON, {
 const $ = s => document.querySelector(s);
 function log(m){ const d=$("#debug-log"); if(d){ d.append(m+"\n"); d.scrollTop=d.scrollHeight; } console.log("[AUTH]", m); }
 
-async function paintUI(){
+async function paintUI() {
   const { data, error } = await supabase.auth.getSession();
-  if (error) log("getSession error: " + error.message);
+  if (error) {
+    log("getSession error: " + error.message);
+    return;
+  }
 
-  const logged = !!data?.session;
-  $("#anon")?.classList.toggle("hidden", logged);
-  $("#authed")?.classList.toggle("hidden", !logged);
+  const logged = !!data?.session; // true si hay sesión, false si no
+
+  $("#anon")?.classList.toggle("hidden", logged);   // ocultar login si hay sesión
+  $("#authed")?.classList.toggle("hidden", !logged); // mostrar welcome si hay sesión
   $("#who").textContent = logged ? (data.session.user?.email || "") : "";
+
   log("paintUI -> logged: " + logged);
 }
-
 let hooked = false;
 function hookAuth(){
   if (hooked) return;
