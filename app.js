@@ -24,12 +24,12 @@ function log(msg) {
 const SB_URL =
   window.SUPABASE_URL ||
   window.__SUPABASE_URL__ ||
-  document.querySelector('meta[name="supabase-url"]')?.content;
+  document.querySelector('meta[name="https://ltkxdikyamllfcpugrcc.supabase.co"]')?.content;
 
 const SB_KEY =
   window.SUPABASE_ANON_KEY ||
   window.__SUPABASE_ANON_KEY__ ||
-  document.querySelector('meta[name="supabase-key"]')?.content;
+  document.querySelector('meta[name="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0a3hkaWt5YW1sbGZjcHVncmNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxNzc0ODAsImV4cCI6MjA3MDc1MzQ4MH0.dTSVaj9ae_PppaTPxcvJbX_Q7PyqnolJ2VH-0mtGdhY"]')?.content;
 
 if (!SB_URL || !SB_KEY) {
   log("❌ No encuentro las credenciales de Supabase. Revisa URL y anon key.");
